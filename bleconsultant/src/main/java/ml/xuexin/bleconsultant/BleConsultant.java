@@ -82,7 +82,7 @@ public class BleConsultant {
         handler = new Handler();
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
-        if (bluetoothAdapter == null) {
+        if (!isSupportBle()) {
             throw new RuntimeException("Init BluetoothAdapter fail");
         }
         scanUtil = new ScanUtil(bluetoothAdapter);
@@ -237,7 +237,7 @@ public class BleConsultant {
     }
 
     public boolean openBluetoothSilently() {
-        if (bluetoothAdapter == null) {
+        if (!isSupportBle()) {
             throw new RuntimeException("bluetoothAdapter is null");
         }
         return bluetoothAdapter.enable();
@@ -274,5 +274,21 @@ public class BleConsultant {
 
     public BleStatus getBleStatus() {
         return connector.getConnectStatus();
+    }
+
+    public boolean isEnabled() {
+        if (isSupportBle())
+            return bluetoothAdapter.isEnabled();
+        return false;
+    }
+
+    public boolean isDiscovering() {
+        if (isSupportBle())
+            return bluetoothAdapter.isDiscovering();
+        return false;
+    }
+
+    public boolean isSupportBle() {
+        return bluetoothAdapter != null;
     }
 }
