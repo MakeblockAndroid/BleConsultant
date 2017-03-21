@@ -22,12 +22,12 @@ import ml.xuexin.bleconsultantsample.R;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final UUID SERVICE_UUID1 = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
-    private static final UUID READ_UUID = UUID.fromString("0000ffe2-0000-1000-8000-00805f9b34fb");
-    private static final UUID WRITE_UUID = UUID.fromString("0000ffe3-0000-1000-8000-00805f9b34fb");
+    private static final String SERVICE_UUID1 = "0000ffe1-0000-1000-8000-00805f9b34fb";
+    private static final String READ_UUID = "0000ffe2-0000-1000-8000-00805f9b34fb";
+    private static final String WRITE_UUID = "0000ffe3-0000-1000-8000-00805f9b34fb";
 
-    protected static final UUID SERVICE_UUID2 = UUID.fromString("0000ffe4-0000-1000-8000-00805f9b34fb");
-    protected static final UUID PIO4_UUID = UUID.fromString("0000ffe5-0000-1000-8000-00805f9b34fb");
+    protected static final String SERVICE_UUID2 = "0000ffe4-0000-1000-8000-00805f9b34fb";
+    protected static final String PIO4_UUID = "0000ffe5-0000-1000-8000-00805f9b34fb";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +118,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public boolean deviceFilter(BleDevice bleDevice) {
-                if (bleDevice.getName() != null && bleDevice.getName().contains("Makeblock"))
+                if (bleDevice.getName() != null && bleDevice.getName().contains("Makeblock")
+                        && bleDevice.getRssi() > -40)
                     return true;
                 return false;
             }
@@ -174,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onReceive(byte[] value) {
                 Log.e("BleConsultant", "receive:" + BleLog.parseByte(value));
             }
-        }, false);
+        });
     }
 
     private void readCharacteristic() {

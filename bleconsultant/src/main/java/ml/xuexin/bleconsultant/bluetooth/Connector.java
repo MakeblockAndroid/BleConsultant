@@ -9,11 +9,10 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
-import java.util.List;
 import java.util.UUID;
 
+import ml.xuexin.bleconsultant.BleConsultant;
 import ml.xuexin.bleconsultant.entity.BleStatus;
-import ml.xuexin.bleconsultant.port.CharacteristicNotifyListener;
 import ml.xuexin.bleconsultant.port.ConnectCallback;
 import ml.xuexin.bleconsultant.port.ConnectionStateListener;
 import ml.xuexin.bleconsultant.port.ReadCallback;
@@ -29,7 +28,6 @@ public class Connector implements Resettable {
             UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
     private BluetoothGatt bluetoothGatt;
     private CharacteristicMap characteristicMap = new CharacteristicMap();
-    private NotifyListenerMap notifyListenerMap = new NotifyListenerMap();
     private ReadCallbackMap readCallbackMap = new ReadCallbackMap();
     private ConnectorHandler handler;
     private ConnectCallback connectCallback;
@@ -59,11 +57,11 @@ public class Connector implements Resettable {
         reset();
     }
 
-    private BluetoothGattCharacteristic getCharacteristic(UUID serviceUuid, UUID characteristicUuid) {
-        return characteristicMap.getCharacteristic(serviceUuid, characteristicUuid);
+    private BluetoothGattCharacteristic getCharacteristic(String serviceUuid, String characteristicUuid) {
+        return characteristicMap.get(serviceUuid, characteristicUuid);
     }
 
-    public boolean writeToBle(UUID serviceUuid, UUID characteristicUuid, byte[] data) {
+    public boolean writeToBle(String serviceUuid, String characteristicUuid, byte[] data) {
         BluetoothGattCharacteristic bluetoothGattCharacteristic =
                 getCharacteristic(serviceUuid, characteristicUuid);
         if (bluetoothGattCharacteristic != null) {
@@ -103,30 +101,19 @@ public class Connector implements Resettable {
     }
 
 
-    public boolean addNotifyListener(UUID serviceUuid,
-                                     UUID characteristicUuid,
-                                     CharacteristicNotifyListener listener,
-                                     boolean monopoly) {
+    public boolean registerNotify(String serviceUuid,
+                                  String characteristicUuid) {
 
         BluetoothGattCharacteristic bluetoothGattCharacteristic =
                 getCharacteristic(serviceUuid, characteristicUuid);
-        boolean success =
-                setCharacteristicNotification(bluetoothGatt, bluetoothGattCharacteristic, true);
-        if (success) {
-            notifyListenerMap.addNotifyListener(bluetoothGattCharacteristic, listener, monopoly);
-        }
-        return success;
+        return setCharacteristicNotification(bluetoothGatt, bluetoothGattCharacteristic, true);
     }
 
-    public void removeNotifyListener(UUID serviceUuid,
-                                     UUID characteristicUuid,
-                                     CharacteristicNotifyListener listener) {
+    public void unregisterNotify(String serviceUuid,
+                                 String characteristicUuid) {
         BluetoothGattCharacteristic bluetoothGattCharacteristic =
                 getCharacteristic(serviceUuid, characteristicUuid);
-        notifyListenerMap.removeNotifyListener(bluetoothGattCharacteristic, listener);
-        if (!notifyListenerMap.hasNotifyListener(bluetoothGattCharacteristic)) {
-            setCharacteristicNotification(bluetoothGatt, bluetoothGattCharacteristic, false);
-        }
+        setCharacteristicNotification(bluetoothGatt, bluetoothGattCharacteristic, false);
     }
 
     private void onConnectCallback(int state) {
@@ -163,9 +150,8 @@ public class Connector implements Resettable {
     public void reset() {
         connectStatus = BleStatus.DISCONNECTED;
         connectCallback = null;
-        characteristicMap.reset();
-        notifyListenerMap.reset();
-        readCallbackMap.reset();
+        characteristicMap.clear();
+        readCallbackMap.clear();
         handler.removeMessages(handler.CONNECT_OVERTIME_MESSAGE);
         handler.removeMessages(handler.REQUEST_RSSI_OVERTIME);
     }
@@ -180,21 +166,22 @@ public class Connector implements Resettable {
         return false;
     }
 
-    public boolean readCharacteristic(UUID serviceUuid,
-                                      UUID characteristicUuid,
+    public boolean readCharacteristic(String serviceUuid,
+                                      String characteristicUuid,
                                       ReadCallback callback,
                                       boolean cover) {
-        BluetoothGattCharacteristic characteristic =
-                characteristicMap.getCharacteristic(serviceUuid, characteristicUuid);
-        boolean addSuccess = readCallbackMap.setCallback(characteristic, callback, cover);
-        if (addSuccess) {
-            Message message = new Message();
-            message.obj = characteristic;
-            message.what = handler.READ_MESSAGE_OVERTIME;
-            handler.sendMessageDelayed(message, callback.getOvertimeTime());
-            return bluetoothGatt.readCharacteristic(characteristic);
+        if (cover && readCallbackMap.get(serviceUuid, characteristicUuid) != null) {
+            return false;
         }
-        return false;
+        BluetoothGattCharacteristic characteristic =
+                characteristicMap.get(serviceUuid, characteristicUuid);
+        readCallbackMap.put(serviceUuid, characteristicUuid, callback);
+        Message message = new Message();
+        message.what = handler.READ_MESSAGE_OVERTIME;
+        message.getData().putString(handler.SERVICE_UUID_KEY, serviceUuid);
+        message.getData().putString(handler.CHARACTERISTIC_UUID_KEY, characteristicUuid);
+        handler.sendMessageDelayed(message, callback.getOvertimeTime());
+        return bluetoothGatt.readCharacteristic(characteristic);
     }
 
     //Sometimes system will not unregister callback, check whether is latest one
@@ -300,7 +287,10 @@ public class Connector implements Resettable {
             Message message = new Message();
             message.getData().putByteArray(handler.RECEIVE_DATA_KEY, data);
             message.what = handler.RECEIVE_MESSAGE;
-            message.obj = characteristic;
+            String serviceUUID = characteristic.getService().getUuid().toString();
+            String characteristicUUID = characteristic.getUuid().toString();
+            message.getData().putString(handler.SERVICE_UUID_KEY, serviceUUID);
+            message.getData().putString(handler.CHARACTERISTIC_UUID_KEY, characteristicUUID);
             handler.sendMessage(message);
             BleLog.d("onCharacteristicChanged");
         }
@@ -319,13 +309,8 @@ public class Connector implements Resettable {
         }
     }
 
-    private void dispatchNotifyData(BluetoothGattCharacteristic characteristic, byte[] data) {
-        List<CharacteristicNotifyListener> listenerList =
-                notifyListenerMap.getListenerList(characteristic);
-        for (CharacteristicNotifyListener listener : listenerList) {
-            listener.onReceive(data);
-        }
-
+    private void dispatchNotifyData(String serviceUUID, String characteristicUUID, byte[] data) {
+        BleConsultant.getInstance().onReceiveData(serviceUUID, characteristicUUID, data);
     }
 
     private boolean hasConnected() {
@@ -336,6 +321,8 @@ public class Connector implements Resettable {
     private class ConnectorHandler extends Handler {
         public static final int RECEIVE_MESSAGE = 0;
         public static final String RECEIVE_DATA_KEY = "RECEIVE_DATA_KEY";
+        public static final String SERVICE_UUID_KEY = "SERVICE_UUID_KEY";
+        public static final String CHARACTERISTIC_UUID_KEY = "CHARACTERISTIC_UUID_KEY";
 
         public static final int CONNECT_MESSAGE = 1;
         public static final int CONNECT_OVERTIME_MESSAGE = 2;
@@ -349,19 +336,15 @@ public class Connector implements Resettable {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            byte[] data = msg.getData().getByteArray(RECEIVE_DATA_KEY);
+            String serviceUUID = msg.getData().getString(SERVICE_UUID_KEY);
+            String characteristicUUID = msg.getData().getString(CHARACTERISTIC_UUID_KEY);
             switch (msg.what) {
-                case RECEIVE_MESSAGE: {
-                    byte[] data = msg.getData().getByteArray(RECEIVE_DATA_KEY);
-                    BluetoothGattCharacteristic characteristic = null;
-                    if (msg.obj != null) {
-                        characteristic = (BluetoothGattCharacteristic) msg.obj;
-                    }
-                    if (data == null || characteristic == null)
+                case RECEIVE_MESSAGE:
+                    if (data == null || serviceUUID == null || characteristicUUID == null)
                         break;
-
-                    dispatchNotifyData(characteristic, data);
-                }
-                break;
+                    dispatchNotifyData(serviceUUID, characteristicUUID, data);
+                    break;
                 case CONNECT_MESSAGE:
                     onConnectCallback(msg.arg1);
                     break;
@@ -379,31 +362,22 @@ public class Connector implements Resettable {
                     requestRssiCallback = null;
                     break;
                 case READ_MESSAGE: {
-                    byte[] data = msg.getData().getByteArray(RECEIVE_DATA_KEY);
-                    BluetoothGattCharacteristic characteristic = null;
-                    if (msg.obj != null) {
-                        characteristic = (BluetoothGattCharacteristic) msg.obj;
-                    }
-                    if (data == null || characteristic == null)
+                    if (data == null || serviceUUID == null || characteristicUUID == null)
                         break;
-                    ReadCallback callback = readCallbackMap.getCallback(characteristic);
+                    ReadCallback callback = readCallbackMap.get(serviceUUID, characteristicUUID);
                     if (callback != null) {
                         callback.onCharacteristicRead(msg.arg1, data);
                     }
                     handler.removeMessages(READ_MESSAGE_OVERTIME);
-                    readCallbackMap.removeCallback(characteristic);
+                    readCallbackMap.remove(serviceUUID, characteristicUUID);
                 }
                 break;
                 case READ_MESSAGE_OVERTIME:
-                    BluetoothGattCharacteristic characteristic = null;
-                    if (msg.obj != null) {
-                        characteristic = (BluetoothGattCharacteristic) msg.obj;
-                    }
-                    ReadCallback callback = readCallbackMap.getCallback(characteristic);
+                    ReadCallback callback = readCallbackMap.get(serviceUUID, characteristicUUID);
                     if (callback != null) {
                         callback.onOvertime();
                     }
-                    readCallbackMap.removeCallback(characteristic);
+                    readCallbackMap.remove(serviceUUID, characteristicUUID);
                     break;
             }
         }

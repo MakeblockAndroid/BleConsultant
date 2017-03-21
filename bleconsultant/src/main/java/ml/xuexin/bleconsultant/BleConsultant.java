@@ -10,10 +10,10 @@ import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import ml.xuexin.bleconsultant.bluetooth.BleFlowValve;
 import ml.xuexin.bleconsultant.bluetooth.Connector;
+import ml.xuexin.bleconsultant.bluetooth.NotifyListenerMap;
 import ml.xuexin.bleconsultant.bluetooth.ScanUtil;
 import ml.xuexin.bleconsultant.entity.BleDevice;
 import ml.xuexin.bleconsultant.entity.BleStatus;
@@ -43,6 +43,8 @@ public class BleConsultant {
     private Connector connector;
     private BleFlowValve bleFlowValve;
     private ConnectionStateListener connectionStateListener;
+    private NotifyListenerMap notifyListenerMap = new NotifyListenerMap();
+
     public static final int DATA_MAX_LENGTH = 20;
     public static final int TIME_GAP = 10;
 
@@ -149,7 +151,7 @@ public class BleConsultant {
 
     }
 
-    public boolean sendToBle(UUID serviceUuid, UUID characteristicUuid, byte[] data) {
+    public boolean sendToBle(String serviceUuid, String characteristicUuid, byte[] data) {
         if (hasConnected()) {
             return bleFlowValve.sendData(new WaitSendData(data, serviceUuid, characteristicUuid));
         }
@@ -162,15 +164,14 @@ public class BleConsultant {
      * @param serviceUuid
      * @param characteristicUuid
      * @param listener
-     * @param monopoly           Other listeners will not receive data until removing monopoly listener
      * @return
      */
-    public boolean addNotifyListener(UUID serviceUuid,
-                                     UUID characteristicUuid,
-                                     CharacteristicNotifyListener listener,
-                                     boolean monopoly) {
+    public boolean addNotifyListener(String serviceUuid,
+                                     String characteristicUuid,
+                                     CharacteristicNotifyListener listener) {
+        notifyListenerMap.put(serviceUuid, characteristicUuid, listener);
         if (hasConnected()) {
-            return connector.addNotifyListener(serviceUuid, characteristicUuid, listener, monopoly);
+            return connector.registerNotify(serviceUuid, characteristicUuid);
         }
         return false;
     }
@@ -183,11 +184,12 @@ public class BleConsultant {
      * @param listener
      * @return
      */
-    public boolean removeNotifyListener(UUID serviceUuid,
-                                        UUID characteristicUuid,
+    public boolean removeNotifyListener(String serviceUuid,
+                                        String characteristicUuid,
                                         CharacteristicNotifyListener listener) {
+        notifyListenerMap.remove(serviceUuid, characteristicUuid);
         if (hasConnected()) {
-            connector.removeNotifyListener(serviceUuid, characteristicUuid, listener);
+            connector.unregisterNotify(serviceUuid, characteristicUuid);
             return true;
         }
         return false;
@@ -210,6 +212,14 @@ public class BleConsultant {
 
     public List<BleDevice> getScanDevices() {
         return scanUtil.getDevices();
+    }
+
+    public void onReceiveData(String serviceUUID, String characteristicUUID, byte[] data) {
+        CharacteristicNotifyListener listener =
+                notifyListenerMap.get(serviceUUID, characteristicUUID);
+        if (listener != null) {
+            listener.onReceive(data);
+        }
     }
 
 
@@ -262,8 +272,8 @@ public class BleConsultant {
      * @param cover              will remove (if exist) callback of the characteristic
      * @return true if success
      */
-    public boolean readCharacteristic(UUID serviceUuid,
-                                      UUID characteristicUuid,
+    public boolean readCharacteristic(String serviceUuid,
+                                      String characteristicUuid,
                                       ReadCallback callback,
                                       boolean cover) {
         if (hasConnected()) {
@@ -291,4 +301,5 @@ public class BleConsultant {
     public boolean isSupportBle() {
         return bluetoothAdapter != null;
     }
+
 }

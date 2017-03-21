@@ -8,45 +8,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import ml.xuexin.bleconsultant.entity.UuidMap;
+
 /**
  * Created by xuexin on 2017/3/8.
  */
 
-public class CharacteristicMap implements Resettable{
-    private Map<UUID, Map<UUID, BluetoothGattCharacteristic>> characteristicMap = new HashMap<>();
+public class CharacteristicMap extends UuidMap<BluetoothGattCharacteristic> {
 
     public void setCharacteristics(List<BluetoothGattService> services) {
         if (services == null) {
             throw new RuntimeException("List of services is null");
         }
         for (BluetoothGattService bluetoothGattService : services) {
-            Map<UUID, BluetoothGattCharacteristic> map = new HashMap<>();
             for (BluetoothGattCharacteristic bluetoothGattCharacteristic :
                     bluetoothGattService.getCharacteristics()) {
-                map.put(bluetoothGattCharacteristic.getUuid(), bluetoothGattCharacteristic);
+                String serviceUUID = bluetoothGattService.getUuid().toString();
+                String characteristicUUID = bluetoothGattCharacteristic.getUuid().toString();
+                put(serviceUUID, characteristicUUID, bluetoothGattCharacteristic);
             }
-            characteristicMap.put(bluetoothGattService.getUuid(), map);
         }
-    }
-
-    /**
-     * ignore NullPointerException
-     *
-     * @param serviceUuid
-     * @param characteristicUuid
-     * @return
-     */
-    public BluetoothGattCharacteristic getCharacteristic(UUID serviceUuid, UUID characteristicUuid) {
-        try {
-            return characteristicMap.get(serviceUuid).get(characteristicUuid);
-        } catch (NullPointerException e) {
-        }
-        return null;
-    }
-
-    @Override
-    public void reset() {
-        characteristicMap.clear();
-
     }
 }

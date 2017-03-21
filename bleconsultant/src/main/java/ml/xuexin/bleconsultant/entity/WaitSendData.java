@@ -8,10 +8,10 @@ import java.util.UUID;
 
 public class WaitSendData {
     public final byte[] data;
-    public final UUID serviceUuid;
-    public final UUID characteristicUuid;
+    public final String serviceUuid;
+    public final String characteristicUuid;
 
-    public WaitSendData(byte[] data, UUID serviceUuid, UUID characteristicUuid) {
+    public WaitSendData(byte[] data, String serviceUuid, String characteristicUuid) {
         this.data = data;
         this.serviceUuid = serviceUuid;
         this.characteristicUuid = characteristicUuid;
