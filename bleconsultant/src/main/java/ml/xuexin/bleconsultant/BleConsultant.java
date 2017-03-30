@@ -43,7 +43,7 @@ public class BleConsultant {
     private Connector connector;
     private BleFlowValve bleFlowValve;
     private ConnectionStateListener connectionStateListener;
-    private NotifyListenerMap notifyListenerMap = new NotifyListenerMap();
+    private CharacteristicNotifyListener characteristicNotifyListener;
 
     public static final int DATA_MAX_LENGTH = 20;
     public static final int TIME_GAP = 10;
@@ -158,39 +158,21 @@ public class BleConsultant {
         return false;
     }
 
-    /**
-     * This method should be called after discovering services successfully.
-     *
-     * @param serviceUuid
-     * @param characteristicUuid
-     * @param listener
-     * @return
-     */
-    public boolean addNotifyListener(String serviceUuid,
-                                     String characteristicUuid,
-                                     CharacteristicNotifyListener listener) {
-        notifyListenerMap.put(serviceUuid, characteristicUuid, listener);
+    public void setNotifyListener(CharacteristicNotifyListener listener) {
+        characteristicNotifyListener = listener;
+
+    }
+
+    public boolean rigsterNotify(String serviceUuid, String characteristicUuid) {
         if (hasConnected()) {
             return connector.registerNotify(serviceUuid, characteristicUuid);
         }
         return false;
     }
 
-    /**
-     * This method should be called after discovering services successfully.
-     *
-     * @param serviceUuid
-     * @param characteristicUuid
-     * @param listener
-     * @return
-     */
-    public boolean removeNotifyListener(String serviceUuid,
-                                        String characteristicUuid,
-                                        CharacteristicNotifyListener listener) {
-        notifyListenerMap.remove(serviceUuid, characteristicUuid);
+    public boolean unrigsterNotify(String serviceUuid, String characteristicUuid) {
         if (hasConnected()) {
-            connector.unregisterNotify(serviceUuid, characteristicUuid);
-            return true;
+            return connector.unregisterNotify(serviceUuid, characteristicUuid);
         }
         return false;
     }
@@ -215,10 +197,8 @@ public class BleConsultant {
     }
 
     public void onReceiveData(String serviceUUID, String characteristicUUID, byte[] data) {
-        CharacteristicNotifyListener listener =
-                notifyListenerMap.get(serviceUUID, characteristicUUID);
-        if (listener != null) {
-            listener.onReceive(data);
+        if (characteristicNotifyListener != null) {
+            characteristicNotifyListener.onReceive(serviceUUID, characteristicUUID, data);
         }
     }
 

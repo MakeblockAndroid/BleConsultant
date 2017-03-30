@@ -5,5 +5,5 @@ package ml.xuexin.bleconsultant.port;
  */
 
 public interface CharacteristicNotifyListener {
-    void onReceive(byte[] value);
+    void onReceive(String serviceUUID, String characteristicUUID, byte[] value);
 }

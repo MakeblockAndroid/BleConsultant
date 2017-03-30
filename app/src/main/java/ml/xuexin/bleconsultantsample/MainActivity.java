@@ -1,13 +1,11 @@
 package ml.xuexin.bleconsultantsample;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 
 import java.util.List;
-import java.util.UUID;
 
 import ml.xuexin.bleconsultant.BleConsultant;
 import ml.xuexin.bleconsultant.entity.BleDevice;
@@ -18,7 +16,6 @@ import ml.xuexin.bleconsultant.port.ReadCallback;
 import ml.xuexin.bleconsultant.port.RequestRssiCallback;
 import ml.xuexin.bleconsultant.port.ScanDevicesHelper;
 import ml.xuexin.bleconsultant.tool.BleLog;
-import ml.xuexin.bleconsultantsample.R;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -170,11 +167,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void registerListener() {
-        BleConsultant.getInstance().addNotifyListener(SERVICE_UUID1, READ_UUID, new CharacteristicNotifyListener() {
+        BleConsultant.getInstance().rigsterNotify(SERVICE_UUID1, READ_UUID);
+        BleConsultant.getInstance().setNotifyListener(new CharacteristicNotifyListener() {
             @Override
-            public void onReceive(byte[] value) {
+            public void onReceive(String serviceUUID, String characteristicUUID, byte[] value) {
                 Log.e("BleConsultant", "receive:" + BleLog.parseByte(value));
             }
+
         });
     }
 

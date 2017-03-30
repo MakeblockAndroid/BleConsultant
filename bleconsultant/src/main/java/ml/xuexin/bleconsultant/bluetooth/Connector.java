@@ -109,11 +109,11 @@ public class Connector implements Resettable {
         return setCharacteristicNotification(bluetoothGatt, bluetoothGattCharacteristic, true);
     }
 
-    public void unregisterNotify(String serviceUuid,
+    public boolean unregisterNotify(String serviceUuid,
                                  String characteristicUuid) {
         BluetoothGattCharacteristic bluetoothGattCharacteristic =
                 getCharacteristic(serviceUuid, characteristicUuid);
-        setCharacteristicNotification(bluetoothGatt, bluetoothGattCharacteristic, false);
+        return setCharacteristicNotification(bluetoothGatt, bluetoothGattCharacteristic, false);
     }
 
     private void onConnectCallback(int state) {
