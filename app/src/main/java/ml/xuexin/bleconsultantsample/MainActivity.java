@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void registerListener() {
-        BleConsultant.getInstance().rigsterNotify(SERVICE_UUID1, READ_UUID);
+        BleConsultant.getInstance().registerNotify(SERVICE_UUID1, READ_UUID);
         BleConsultant.getInstance().setNotifyListener(new CharacteristicNotifyListener() {
             @Override
             public void onReceive(String serviceUUID, String characteristicUUID, byte[] value) {

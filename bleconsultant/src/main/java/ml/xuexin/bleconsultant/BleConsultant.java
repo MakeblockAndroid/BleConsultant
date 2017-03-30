@@ -163,14 +163,14 @@ public class BleConsultant {
 
     }
 
-    public boolean rigsterNotify(String serviceUuid, String characteristicUuid) {
+    public boolean registerNotify(String serviceUuid, String characteristicUuid) {
         if (hasConnected()) {
             return connector.registerNotify(serviceUuid, characteristicUuid);
         }
         return false;
     }
 
-    public boolean unrigsterNotify(String serviceUuid, String characteristicUuid) {
+    public boolean unregisterNotify(String serviceUuid, String characteristicUuid) {
         if (hasConnected()) {
             return connector.unregisterNotify(serviceUuid, characteristicUuid);
         }
