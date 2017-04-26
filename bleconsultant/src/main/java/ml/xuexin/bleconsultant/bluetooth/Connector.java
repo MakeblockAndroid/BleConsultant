@@ -64,9 +64,13 @@ public class Connector implements Resettable {
     public boolean writeToBle(String serviceUuid, String characteristicUuid, byte[] data) {
         BluetoothGattCharacteristic bluetoothGattCharacteristic =
                 getCharacteristic(serviceUuid, characteristicUuid);
-        if (bluetoothGattCharacteristic != null) {
-            bluetoothGattCharacteristic.setValue(data);
-            return bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristic);
+        try {
+            if (bluetoothGattCharacteristic != null) {
+                bluetoothGattCharacteristic.setValue(data);
+                return bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristic);
+            }
+        } catch (Exception e) {
+
         }
         return false;
     }

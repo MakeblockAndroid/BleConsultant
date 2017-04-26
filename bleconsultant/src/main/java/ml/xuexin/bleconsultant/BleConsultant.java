@@ -140,6 +140,7 @@ public class BleConsultant {
     }
 
     public void disconnect() {
+        bleFlowValve.reset();
         connector.disconnect();
         reset();
     }
