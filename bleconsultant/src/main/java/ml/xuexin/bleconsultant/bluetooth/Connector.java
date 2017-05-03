@@ -362,8 +362,10 @@ public class Connector implements Resettable {
                     }
                     break;
                 case REQUEST_RSSI_OVERTIME:
-                    requestRssiCallback.onOvertime();
-                    requestRssiCallback = null;
+                    if (requestRssiCallback != null) {
+                        requestRssiCallback.onOvertime();
+                        requestRssiCallback = null;
+                    }
                     break;
                 case READ_MESSAGE: {
                     if (data == null || serviceUUID == null || characteristicUUID == null)
