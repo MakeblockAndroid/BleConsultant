@@ -53,4 +53,17 @@ public class BleDevice {
                 .append(", rssi:" + getRssi())
                 .toString();
     }
+
+    @Override
+    public int hashCode() {
+        return bluetoothDevice.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof BleDevice) {
+            return bluetoothDevice.equals(((BleDevice) obj).bluetoothDevice);
+        }
+        return super.equals(obj);
+    }
 }
