@@ -10,6 +10,7 @@ public class BleDevice {
     private final BluetoothDevice bluetoothDevice;
     private int rssi;
     private long rssiUpdateTime;
+    private String cacheName = null;
 
     public BleDevice(BluetoothDevice bluetoothDevice, int rssi, long rssiUpdateTime) {
         this.bluetoothDevice = bluetoothDevice;
@@ -18,7 +19,10 @@ public class BleDevice {
     }
 
     public String getName() {
-        return bluetoothDevice.getName();
+        if (cacheName == null) {
+            cacheName = bluetoothDevice.getName();
+        }
+        return cacheName;
     }
 
     public String getAddress() {
