@@ -18,6 +18,9 @@ import ml.xuexin.bleconsultant.bluetooth.ScanUtil;
 import ml.xuexin.bleconsultant.entity.BleDevice;
 import ml.xuexin.bleconsultant.entity.BleStatus;
 import ml.xuexin.bleconsultant.entity.WaitSendData;
+import ml.xuexin.bleconsultant.exception.BleNotSupportException;
+import ml.xuexin.bleconsultant.exception.InitBluetoothException;
+import ml.xuexin.bleconsultant.exception.ThreadException;
 import ml.xuexin.bleconsultant.port.CharacteristicNotifyListener;
 import ml.xuexin.bleconsultant.port.ConnectCallback;
 import ml.xuexin.bleconsultant.port.ConnectionStateListener;
@@ -76,16 +79,16 @@ public class BleConsultant {
     public void init(Context context, int dataMaxLength, int timeGap) {
         //check
         if (!ThreadUtil.isMainThread()) {
-            throw new RuntimeException("Please call init on main thread");
+            throw new ThreadException();
         }
         if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            throw new RuntimeException("Device don't support BLE");
+            throw new BleNotSupportException();
         }
         handler = new Handler();
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
         if (!isSupportBle()) {
-            throw new RuntimeException("Init BluetoothAdapter fail");
+            throw new InitBluetoothException();
         }
         scanUtil = new ScanUtil(bluetoothAdapter);
         connector = new Connector(connectionStateListener);
