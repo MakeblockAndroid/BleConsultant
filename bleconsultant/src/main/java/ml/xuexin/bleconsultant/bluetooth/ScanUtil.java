@@ -2,6 +2,7 @@ package ml.xuexin.bleconsultant.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
@@ -9,8 +10,10 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Vector;
 
 import ml.xuexin.bleconsultant.entity.BleDevice;
 import ml.xuexin.bleconsultant.tool.BleLog;
@@ -19,19 +22,22 @@ import ml.xuexin.bleconsultant.tool.BleLog;
  * Created by xuexin on 2017/3/3.
  */
 
-public class ScanUtil implements Resettable{
+public class ScanUtil implements Resettable {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothAdapter.LeScanCallback leScanCallback;
     private ScanCallback scanCallback;
-    private LinkedHashMap<BluetoothDevice, BleDevice> deviceMap;
+    private HashMap<BluetoothDevice, BleDevice> deviceMap;
+    private Vector<BleDevice> deviceVector;
 
     public ScanUtil(BluetoothAdapter bluetoothAdapter) {
         this.bluetoothAdapter = bluetoothAdapter;
         deviceMap = new LinkedHashMap<>();
+        deviceVector = new Vector<>();
     }
 
     public void startScan() {
         deviceMap.clear();
+        deviceVector.clear();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             if (leScanCallback == null) {
                 leScanCallback = new BluetoothAdapter.LeScanCallback() {
@@ -80,8 +86,11 @@ public class ScanUtil implements Resettable{
             if (leScanCallback != null)
                 bluetoothAdapter.stopLeScan(leScanCallback);
         } else {
-            if (scanCallback != null)
-                bluetoothAdapter.getBluetoothLeScanner().stopScan(scanCallback);
+            if (scanCallback != null) {
+                BluetoothLeScanner bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+                if (bluetoothLeScanner != null)
+                    bluetoothLeScanner.stopScan(scanCallback);
+            }
         }
     }
 
@@ -91,6 +100,7 @@ public class ScanUtil implements Resettable{
         if (bleDevice == null) {
             bleDevice = new BleDevice(bluetoothDevice, rssi, currentTime);
             deviceMap.put(bluetoothDevice, bleDevice);
+            deviceVector.add(bleDevice);
         } else {
             bleDevice.setRssi(rssi);
             bleDevice.setRssiUpdateTime(currentTime);
@@ -103,11 +113,12 @@ public class ScanUtil implements Resettable{
     }
 
     public List<BleDevice> getDevices() {
-        return new ArrayList<>(deviceMap.values());
+        return new ArrayList<>(deviceVector);
     }
 
     @Override
     public void reset() {
         deviceMap.clear();
+        deviceVector.clear();
     }
 }

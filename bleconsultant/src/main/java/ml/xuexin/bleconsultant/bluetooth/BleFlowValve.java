@@ -12,7 +12,7 @@ import ml.xuexin.bleconsultant.tool.BleLog;
  * Created by xuexin on 2017/3/9.
  */
 
-public class BleFlowValve implements Resettable{
+public class BleFlowValve implements Resettable {
     private final Connector connector;
     private final LinkedBlockingQueue<WaitSendData> waitSendDataQueue = new LinkedBlockingQueue<>();
     private final Timer sendDataTimer;
@@ -56,7 +56,9 @@ public class BleFlowValve implements Resettable{
                 } else {
                     break;
                 }
-                lastData = waitSendDataQueue.poll();
+                if (waitSendData != null) {
+                    lastData = waitSendDataQueue.poll();
+                }
             }
             //send
             int sendCount = cacheCount > dataMaxLength ? dataMaxLength : cacheCount;

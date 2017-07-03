@@ -318,7 +318,7 @@ public class Connector implements Resettable {
     }
 
     private boolean hasConnected() {
-        return connectStatus == BleStatus.CONNECTED;
+        return connectStatus == BleStatus.CONNECTED && bluetoothGatt != null;
     }
 
 
