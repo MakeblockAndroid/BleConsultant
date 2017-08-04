@@ -114,7 +114,7 @@ public class Connector implements Resettable {
     }
 
     public boolean unregisterNotify(String serviceUuid,
-                                 String characteristicUuid) {
+                                    String characteristicUuid) {
         BluetoothGattCharacteristic bluetoothGattCharacteristic =
                 getCharacteristic(serviceUuid, characteristicUuid);
         return setCharacteristicNotification(bluetoothGatt, bluetoothGattCharacteristic, false);
@@ -296,7 +296,7 @@ public class Connector implements Resettable {
             message.getData().putString(handler.SERVICE_UUID_KEY, serviceUUID);
             message.getData().putString(handler.CHARACTERISTIC_UUID_KEY, characteristicUUID);
             handler.sendMessage(message);
-            BleLog.d("onCharacteristicChanged");
+            BleLog.d("onCharacteristicChanged, data:" + BleLog.parseByte(data) + ", serviceUUID:" + serviceUUID + ", characteristicUUID:" + characteristicUUID);
         }
 
         @Override
