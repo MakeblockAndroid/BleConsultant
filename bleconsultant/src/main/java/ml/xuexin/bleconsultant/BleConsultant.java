@@ -2,6 +2,7 @@ package ml.xuexin.bleconsultant;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -284,6 +285,10 @@ public class BleConsultant {
 
     public boolean isSupportBle() {
         return bluetoothAdapter != null;
+    }
+
+    public BluetoothGattCharacteristic getCharacteristic(String serviceUuid, String characteristicUuid) {
+        return connector.getCharacteristic(serviceUuid, characteristicUuid);
     }
 
 }
