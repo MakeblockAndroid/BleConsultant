@@ -287,8 +287,8 @@ public class BleConsultant {
         return bluetoothAdapter != null;
     }
 
-    public BluetoothGattCharacteristic getCharacteristic(String serviceUuid, String characteristicUuid) {
-        return connector.getCharacteristic(serviceUuid, characteristicUuid);
+    public boolean writeDataForTest(String serviceUuid, String characteristicUuid, byte[] data) {
+        return connector.writeToBle(serviceUuid, characteristicUuid, data);
     }
 
 }

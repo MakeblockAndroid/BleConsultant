@@ -57,7 +57,7 @@ public class Connector implements Resettable {
         reset();
     }
 
-    public BluetoothGattCharacteristic getCharacteristic(String serviceUuid, String characteristicUuid) {
+    private BluetoothGattCharacteristic getCharacteristic(String serviceUuid, String characteristicUuid) {
         return characteristicMap.get(serviceUuid, characteristicUuid);
     }
 
