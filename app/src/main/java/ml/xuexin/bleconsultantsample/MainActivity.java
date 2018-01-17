@@ -8,13 +8,13 @@ import android.view.View;
 import java.util.List;
 
 import ml.xuexin.bleconsultant.BleConsultant;
-import ml.xuexin.bleconsultant.entity.BleDevice;
+import ml.xuexin.bleconsultant.entity.BleClient;
 import ml.xuexin.bleconsultant.port.CharacteristicNotifyListener;
 import ml.xuexin.bleconsultant.port.ConnectCallback;
 import ml.xuexin.bleconsultant.port.ConnectionStateListener;
 import ml.xuexin.bleconsultant.port.ReadCallback;
 import ml.xuexin.bleconsultant.port.RequestRssiCallback;
-import ml.xuexin.bleconsultant.port.ScanDevicesHelper;
+import ml.xuexin.bleconsultant.port.ScanClientsHelper;
 import ml.xuexin.bleconsultant.tool.BleLog;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -104,19 +104,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void searchAndConnect() {
-        BleConsultant.getInstance().setScanDevicesHelper(new ScanDevicesHelper() {
+        BleConsultant.getInstance().setScanClientsHelper(new ScanClientsHelper() {
             @Override
-            public void reportDevices(List<BleDevice> bleDeviceList) {
-                for (final BleDevice bleDevice : bleDeviceList) {
-                    connectDevice(bleDevice);
-                    BleLog.w("address:" + bleDevice.getAddress() + ", rssi:" + bleDevice.getRssi());
+            public void reportClients(List<BleClient> bleClientList) {
+                for (final BleClient bleClient : bleClientList) {
+                    connectClient(bleClient);
+                    BleLog.w("address:" + bleClient.getAddress() + ", rssi:" + bleClient.getRssi());
                 }
             }
 
             @Override
-            public boolean deviceFilter(BleDevice bleDevice) {
-                if (bleDevice.getName() != null && bleDevice.getName().contains("Makeblock")
-                        && bleDevice.getRssi() > -40)
+            public boolean clientFilter(BleClient bleClient) {
+                if (bleClient.getName() != null && bleClient.getName().contains("Makeblock")
+                        && bleClient.getRssi() > -40)
                     return true;
                 return false;
             }
@@ -128,8 +128,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void connectDevice(BleDevice bleDevice) {
-        BleConsultant.getInstance().connect(bleDevice, new ConnectCallback() {
+    private void connectClient(BleClient bleClient) {
+        BleConsultant.getInstance().connect(bleClient, new ConnectCallback() {
             @Override
             public void onStateChange(int state) {
                 switch (state) {

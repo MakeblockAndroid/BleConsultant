@@ -2,26 +2,26 @@ package ml.xuexin.bleconsultant.port;
 
 import java.util.List;
 
-import ml.xuexin.bleconsultant.entity.BleDevice;
+import ml.xuexin.bleconsultant.entity.BleClient;
 
 /**
  * Created by xuexin on 2017/3/3.
  */
 
-public interface ScanDevicesHelper {
+public interface ScanClientsHelper {
 
     /**
      * This method will be always called at UI thread.
-     * @param bleDeviceList List of filtered devices
+     * @param bleClientList List of filtered devices
      */
-    void reportDevices(List<BleDevice> bleDeviceList);
+    void reportClients(List<BleClient> bleClientList);
 
     /**
      *
-     * @param bleDevice
+     * @param bleClient
      * @return return false will ignore the device
      */
-    boolean deviceFilter(BleDevice bleDevice);
+    boolean clientFilter(BleClient bleClient);
 
 
     /**

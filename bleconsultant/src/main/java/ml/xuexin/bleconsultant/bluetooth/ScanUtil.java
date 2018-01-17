@@ -15,7 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
-import ml.xuexin.bleconsultant.entity.BleDevice;
+import ml.xuexin.bleconsultant.entity.BleClient;
 import ml.xuexin.bleconsultant.tool.BleLog;
 
 /**
@@ -26,18 +26,18 @@ public class ScanUtil implements Resettable {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothAdapter.LeScanCallback leScanCallback;
     private ScanCallback scanCallback;
-    private HashMap<BluetoothDevice, BleDevice> deviceMap;
-    private Vector<BleDevice> deviceVector;
+    private HashMap<BluetoothDevice, BleClient> clientHashMap;
+    private Vector<BleClient> clientVector;
 
     public ScanUtil(BluetoothAdapter bluetoothAdapter) {
         this.bluetoothAdapter = bluetoothAdapter;
-        deviceMap = new LinkedHashMap<>();
-        deviceVector = new Vector<>();
+        clientHashMap = new LinkedHashMap<>();
+        clientVector = new Vector<>();
     }
 
     public void startScan() {
-        deviceMap.clear();
-        deviceVector.clear();
+        clientHashMap.clear();
+        clientVector.clear();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             if (leScanCallback == null) {
                 leScanCallback = new BluetoothAdapter.LeScanCallback() {
@@ -96,29 +96,29 @@ public class ScanUtil implements Resettable {
 
     private void onBleScanResult(BluetoothDevice bluetoothDevice, int rssi) {
         long currentTime = System.currentTimeMillis();
-        BleDevice bleDevice = deviceMap.get(bluetoothDevice);
-        if (bleDevice == null) {
-            bleDevice = new BleDevice(bluetoothDevice, rssi, currentTime);
-            deviceMap.put(bluetoothDevice, bleDevice);
-            deviceVector.add(bleDevice);
+        BleClient bleClient = clientHashMap.get(bluetoothDevice);
+        if (bleClient == null) {
+            bleClient = new BleClient(bluetoothDevice, rssi, currentTime);
+            clientHashMap.put(bluetoothDevice, bleClient);
+            clientVector.add(bleClient);
         } else {
-            bleDevice.setRssi(rssi);
-            bleDevice.setRssiUpdateTime(currentTime);
+            bleClient.setRssi(rssi);
+            bleClient.setRssiUpdateTime(currentTime);
         }
-        BleLog.w(bleDevice.toString());
+        BleLog.w(bleClient.toString());
     }
 
     private void onBleScanFail(int errorCode) {
 
     }
 
-    public List<BleDevice> getDevices() {
-        return new ArrayList<>(deviceVector);
+    public List<BleClient> getClients() {
+        return new ArrayList<>(clientVector);
     }
 
     @Override
     public void reset() {
-        deviceMap.clear();
-        deviceVector.clear();
+        clientHashMap.clear();
+        clientVector.clear();
     }
 }

@@ -41,7 +41,7 @@ public class Connector implements Resettable {
         this.connectionStateListener = connectionStateListener;
     }
 
-    public void connectDevice(BluetoothDevice bluetoothDevice, Context context,
+    public void connectClient(BluetoothDevice bluetoothDevice, Context context,
                               ConnectCallback callback) {
         connectCallback = callback;
         handler.sendEmptyMessageDelayed(handler.CONNECT_OVERTIME_MESSAGE,

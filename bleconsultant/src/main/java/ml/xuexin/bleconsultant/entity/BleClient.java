@@ -6,13 +6,13 @@ import android.bluetooth.BluetoothDevice;
  * Created by xuexin on 2017/3/3.
  */
 
-public class BleDevice {
+public class BleClient {
     private final BluetoothDevice bluetoothDevice;
     private int rssi;
     private long rssiUpdateTime;
     private final String name;
 
-    public BleDevice(BluetoothDevice bluetoothDevice, int rssi, long rssiUpdateTime) {
+    public BleClient(BluetoothDevice bluetoothDevice, int rssi, long rssiUpdateTime) {
         this.bluetoothDevice = bluetoothDevice;
         this.rssi = rssi;
         this.rssiUpdateTime = rssiUpdateTime;
@@ -63,8 +63,8 @@ public class BleDevice {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof BleDevice) {
-            return bluetoothDevice.equals(((BleDevice) obj).bluetoothDevice);
+        if (obj instanceof BleClient) {
+            return bluetoothDevice.equals(((BleClient) obj).bluetoothDevice);
         }
         return super.equals(obj);
     }

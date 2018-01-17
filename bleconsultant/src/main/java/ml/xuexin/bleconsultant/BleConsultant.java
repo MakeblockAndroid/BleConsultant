@@ -2,7 +2,6 @@ package ml.xuexin.bleconsultant;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -14,9 +13,8 @@ import java.util.List;
 
 import ml.xuexin.bleconsultant.bluetooth.BleFlowValve;
 import ml.xuexin.bleconsultant.bluetooth.Connector;
-import ml.xuexin.bleconsultant.bluetooth.NotifyListenerMap;
 import ml.xuexin.bleconsultant.bluetooth.ScanUtil;
-import ml.xuexin.bleconsultant.entity.BleDevice;
+import ml.xuexin.bleconsultant.entity.BleClient;
 import ml.xuexin.bleconsultant.entity.BleStatus;
 import ml.xuexin.bleconsultant.entity.WaitSendData;
 import ml.xuexin.bleconsultant.exception.BleNotSupportException;
@@ -27,7 +25,7 @@ import ml.xuexin.bleconsultant.port.ConnectCallback;
 import ml.xuexin.bleconsultant.port.ConnectionStateListener;
 import ml.xuexin.bleconsultant.port.ReadCallback;
 import ml.xuexin.bleconsultant.port.RequestRssiCallback;
-import ml.xuexin.bleconsultant.port.ScanDevicesHelper;
+import ml.xuexin.bleconsultant.port.ScanClientsHelper;
 import ml.xuexin.bleconsultant.tool.BleLog;
 import ml.xuexin.bleconsultant.tool.ThreadUtil;
 
@@ -97,13 +95,13 @@ public class BleConsultant {
         applicationContext = context.getApplicationContext();
     }
 
-    public boolean setScanDevicesHelper(@Nullable ScanDevicesHelper scanDevicesHelper) {
+    public boolean setScanClientsHelper(@Nullable ScanClientsHelper scanClientsHelper) {
         if (bluetoothAdapter.isEnabled()) {
             try {
                 stopScan();
-                if (scanDevicesHelper != null) {
-                    scanCallBackRunnable = new ScanCallBackRunnable(scanDevicesHelper);
-                    handler.postDelayed(scanCallBackRunnable, scanDevicesHelper.getReportPeriod());
+                if (scanClientsHelper != null) {
+                    scanCallBackRunnable = new ScanCallBackRunnable(scanClientsHelper);
+                    handler.postDelayed(scanCallBackRunnable, scanClientsHelper.getReportPeriod());
                     startScan();
                 }
                 return true;
@@ -130,14 +128,14 @@ public class BleConsultant {
     }
 
 
-    public boolean connect(BleDevice bleDevice, ConnectCallback connectCallback) {
+    public boolean connect(BleClient bleClient, ConnectCallback connectCallback) {
         stopScan();
-        return connect(bleDevice.getBluetoothDevice(), connectCallback);
+        return connect(bleClient.getBluetoothDevice(), connectCallback);
     }
 
     private boolean connect(BluetoothDevice bluetoothDevice, ConnectCallback connectCallback) {
         if (connector.getConnectStatus() == BleStatus.DISCONNECTED) {
-            connector.connectDevice(bluetoothDevice, applicationContext, connectCallback);
+            connector.connectClient(bluetoothDevice, applicationContext, connectCallback);
             return true;
         }
         return false;
@@ -197,8 +195,8 @@ public class BleConsultant {
         return false;
     }
 
-    public List<BleDevice> getScanDevices() {
-        return scanUtil.getDevices();
+    public List<BleClient> getScanClients() {
+        return scanUtil.getClients();
     }
 
     public void onReceiveData(String serviceUUID, String characteristicUUID, byte[] data) {
@@ -210,24 +208,24 @@ public class BleConsultant {
 
     private class ScanCallBackRunnable implements Runnable {
 
-        private final ScanDevicesHelper scanDevicesHelper;
+        private final ScanClientsHelper scanClientsHelper;
 
-        public ScanCallBackRunnable(ScanDevicesHelper scanDevicesHelper) {
+        public ScanCallBackRunnable(ScanClientsHelper scanClientsHelper) {
             super();
-            this.scanDevicesHelper = scanDevicesHelper;
+            this.scanClientsHelper = scanClientsHelper;
         }
 
         @Override
         public void run() {
-            List<BleDevice> scanDevices = getScanDevices();
-            List<BleDevice> list = new ArrayList<>();
-            for (BleDevice bleDevice : scanDevices) {
-                if (scanDevicesHelper.deviceFilter(bleDevice)) {
-                    list.add(bleDevice);
+            List<BleClient> scanClients = getScanClients();
+            List<BleClient> list = new ArrayList<>();
+            for (BleClient bleClient : scanClients) {
+                if (scanClientsHelper.clientFilter(bleClient)) {
+                    list.add(bleClient);
                 }
             }
-            handler.postDelayed(this, scanDevicesHelper.getReportPeriod());
-            scanDevicesHelper.reportDevices(list);
+            handler.postDelayed(this, scanClientsHelper.getReportPeriod());
+            scanClientsHelper.reportClients(list);
         }
     }
 
