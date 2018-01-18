@@ -41,6 +41,11 @@ public class BleFlowValve implements Resettable {
         waitSendDataQueue.clear();
     }
 
+    public void destory() {
+        reset();
+        sendDataTimer.cancel();
+    }
+
     private class SendDataTimerTask extends TimerTask {
         @Override
         public void run() {

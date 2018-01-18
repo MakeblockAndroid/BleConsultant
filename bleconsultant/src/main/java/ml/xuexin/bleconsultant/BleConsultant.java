@@ -95,6 +95,15 @@ public class BleConsultant {
         applicationContext = context.getApplicationContext();
     }
 
+    /**
+     * This method will drop the buffer
+     * @param interval
+     */
+    public void resetBleProperty(int dataMaxLength, int interval) {
+        bleFlowValve.destory();
+        bleFlowValve = new BleFlowValve(connector, dataMaxLength, interval);
+    }
+
     public boolean setScanClientsHelper(@Nullable ScanClientsHelper scanClientsHelper) {
         if (bluetoothAdapter.isEnabled()) {
             try {
