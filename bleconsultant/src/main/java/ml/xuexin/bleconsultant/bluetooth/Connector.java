@@ -5,10 +5,12 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
+import java.util.List;
 import java.util.UUID;
 
 import ml.xuexin.bleconsultant.BleConsultant;
@@ -387,5 +389,9 @@ public class Connector implements Resettable {
                     break;
             }
         }
+    }
+
+    public List<BluetoothGattService> getServices() {
+        return bluetoothGatt.getServices();
     }
 }

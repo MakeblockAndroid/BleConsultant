@@ -2,6 +2,7 @@ package ml.xuexin.bleconsultant;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -298,4 +299,7 @@ public class BleConsultant {
         return connector.writeToBle(serviceUuid, characteristicUuid, data);
     }
 
+    public List<BluetoothGattService> getCurrentServices() {
+        return connector.getServices();
+    }
 }
