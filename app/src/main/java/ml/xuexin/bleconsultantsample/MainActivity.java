@@ -1,7 +1,10 @@
 package ml.xuexin.bleconsultantsample;
 
+import android.Manifest;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.util.Log;
 import android.view.View;
 
@@ -16,6 +19,8 @@ import ml.xuexin.bleconsultant.port.ReadCallback;
 import ml.xuexin.bleconsultant.port.RequestRssiCallback;
 import ml.xuexin.bleconsultant.port.ScanClientsHelper;
 import ml.xuexin.bleconsultant.tool.BleLog;
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -103,29 +108,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    private static final int LOCATION = 1;
+
+    private void methodRequiresTwoPermission() {
+
+    }
+
+    @AfterPermissionGranted(LOCATION)
     private void searchAndConnect() {
-        BleConsultant.getInstance().setScanClientsHelper(new ScanClientsHelper() {
-            @Override
-            public void reportClients(List<BleClient> bleClientList) {
-                for (final BleClient bleClient : bleClientList) {
-                    connectClient(bleClient);
-                    BleLog.w("address:" + bleClient.getAddress() + ", rssi:" + bleClient.getRssi());
+        String[] perms = {Manifest.permission.ACCESS_FINE_LOCATION};
+        if (EasyPermissions.hasPermissions(this, perms)) {
+            BleConsultant.getInstance().setScanClientsHelper(new ScanClientsHelper() {
+                @Override
+                public void reportClients(List<BleClient> bleClientList) {
+                    for (final BleClient bleClient : bleClientList) {
+                        connectClient(bleClient);
+                        BleLog.w("address:" + bleClient.getAddress() + ", rssi:" + bleClient.getRssi());
+                    }
                 }
-            }
 
-            @Override
-            public boolean clientFilter(BleClient bleClient) {
-                if (bleClient.getName() != null && bleClient.getName().contains("Makeblock")
-                        && bleClient.getRssi() > -40)
-                    return true;
-                return false;
-            }
+                @Override
+                public boolean clientFilter(BleClient bleClient) {
+                    if (bleClient.getName() != null && bleClient.getName().contains("Makeblock")
+                            && bleClient.getRssi() > -40)
+                        return true;
+                    return false;
+                }
 
-            @Override
-            public long getReportPeriod() {
-                return 1000;
-            }
-        });
+                @Override
+                public long getReportPeriod() {
+                    return 1000;
+                }
+            });
+        } else {
+            // Do not have permissions, request them now
+            EasyPermissions.requestPermissions(this, "需要位置权限,否则无法搜索",
+                    LOCATION, perms);
+        }
+
     }
 
     private void connectClient(BleClient bleClient) {
@@ -198,5 +218,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void disconnect() {
         BleConsultant.getInstance().disconnect();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // Forward results to EasyPermissions
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
     }
 }
